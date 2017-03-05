@@ -1,0 +1,7 @@
+#!/bin/bash
+
+source ../selected
+
+# PS3="choice number: "
+choices=( 'one' 'two' 'three' 'four' 'five' ) # sample choices
+selected "${choices[@]}"

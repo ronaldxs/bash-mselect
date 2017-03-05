@@ -1,0 +1,76 @@
+#!/usr/bin/expect -f
+
+######################################################################
+#
+# expect test suite for withsome.  Currently 20-30 tests.
+# This is alpha software - PLEASE DO RUN THE TESTS -
+#
+# Ronald Schmidt
+# withsome Version/Version 0.10/0.15
+#
+######################################################################
+
+proc fail_test test_no_var {
+    upvar $test_no_var test_no
+    set old_test_no $test_no
+    incr test_no
+	error "fail testy $old_test_no"
+    
+}
+
+proc to_fail_test test_no_var {
+    upvar $test_no_var test_no
+    puts "\n"
+    fail_test test_no
+}
+
+proc pass_test test_no_var {
+    upvar $test_no_var test_no
+    set old_test_no $test_no
+    incr test_no
+	error "ok test $old_test_no"
+}
+
+proc confirm_ok test_no_var {
+    upvar $test_no_var test_no
+    expect {
+	    -re         " - Empty.*"	{ send "\n" }
+	    eof		    { fail_test test_no }
+	    timeout		{ to_fail_test test_no }
+    }
+}
+
+
+set timeout 5 
+# send "test3\n"
+#spawn ./withsome ../testdata wc Pugs.cabal
+
+
+#export WS_IGNORE=.svn:extra_test
+set env(WS_IGNORE) ".svn:extra_test"
+set env(WS_FIND_ROOT) "-"
+set env(WS_SAFE_CMD) "tail:ls"
+set env(WS_FORBIDDEN_CMD) "rm:unlink:/bin/outgrabe"
+# exec bash -c "export WS_FIND_ROOT"
+
+set test_no 1
+
+log_user 0
+
+puts "something"
+# puts "Should run approximately 25 tests:"
+
+catch {
+spawn ../selected
+# confirm_ok test_no
+expect {
+    -re             "four"  { pass_test test_no }
+    eof		        { fail_test test_no }
+    timeout		    { fail_test test_no }
+}
+
+} test_result
+
+puts $test_result
+close
+
