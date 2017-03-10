@@ -34,7 +34,7 @@ push @{$EXPORT_TAGS{'all'}}, @{$EXPORT_TAGS{ $_ }}
 
 Readonly our $SHELL_CMD_TO => 10;
 Readonly our $DEFAULT_MENU_PROMPT => '#? ';
-Readonly our $RUN_CMD => "$Bin/../bin/mselect.bash";
+Readonly our $RUN_CMD => "$Bin/../bin/mselect";
 
 sub new_menu_to_n {
     my $n = shift;
