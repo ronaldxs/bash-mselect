@@ -15,7 +15,8 @@ my $exp = Test::Expect::Raw->new(
     timeout => $SHELL_CMD_TO,
     prompt => $DEFAULT_MENU_PROMPT
 );
-$exp->spawn("/usr/bin/env bash -c '$RUN_CMD -a<(cd $Bin/ls-menu;ls)'");
+
+$exp->spawn("/usr/bin/env bash -c 'ls $Bin/ls-menu | $RUN_CMD'");
 subtest 'get menu from file names', sub {
     plan tests => 2;
 
@@ -25,11 +26,17 @@ subtest 'get menu from file names', sub {
     );
 };
 
+#die qq!/usr/bin/env bash -c \$'IFS="\\n"; echo 1 5 | $RUN_CMD -t `ls ./ls-menu`'!;
 $exp = Test::Expect::Raw->new(
     timeout => $SHELL_CMD_TO,
     prompt => $DEFAULT_MENU_PROMPT
 );
-$exp->spawn(qq!/usr/bin/env bash -c "echo 1 5 | xargs -a<(cd $Bin/ls-menu;ls) -d'\\n' $RUN_CMD -x"!);
+# list form of spawn, which calls exec,
+# to prevent /bin/sh -c from interfering with quotes
+$exp->spawn(
+    '/usr/bin/env', 'bash', '-c',
+    qq!IFS=\$'\\n'; echo 1 5 | $RUN_CMD -t `ls $Bin/ls-menu`!
+);
 
 $exp->expect_lines(
     [ 'a file name with spaces.txt', 'source-file.C' ],

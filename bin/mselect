@@ -5,7 +5,7 @@
 =head1 NAME
 
 mselect - a text filter extension of select that allows
-multiple selections.  Depending on options menu items
+multiple selections.  Depending on options, menu items
 can be selected more than once and output defaults to order
 of user selection but can be in order of menu items.  '*'
 specifies selecting all menu items unless disallowed with B<-n>.
@@ -25,28 +25,6 @@ specifies selecting all menu items unless disallowed with B<-n>.
 
 =over
 
-=item B<-a>
-
-Get list of menu items as lines of file or subprocess
-specified by -a option.  Since menu selections are read
-from stdin the command
-
- ls -1 | xargs mselect
-
-doesn't do what you expect.  Menu selection tries to read
-from the closed pipe and no menu item is selected.  Instead do:
-
- mselect -a<(ls -1)
-
-to get the menu from the output of the ls command (or some other).
-Menu items are separated by end of line to allow embedded horizontal
-space.
-
-=item B<-n>
-
-Disallow '*' selection of all items and require that selections
-be individually specified items by number.
-
 =item B<-s>
 
 Sort output in menu order.  By default selections are output in the
@@ -60,19 +38,15 @@ Require that item selections be unique.  Prints an error and presents
 the menu again if an item is selected more than once.  By default
 the same item can be selected more than once.
 
-=item B<-x>
+=item B<-n>
 
-Allow mselect to run under xargs.  As explained with the B<-a> option,
-running mselect the usual way with xargs doesn't work since the menu
-selection is read from stdin which is being used by xargs.  If, for
-some reason, you must use xargs try
+Disallow '*' selection of all items and require that selections
+be individually specified items by number.
 
- echo 2 | xargs -a<(ls -1) -d$'\n' mselect -x
+=item B<-t>
 
-and now xargs reads the arguments that become menu selections from `ls`
-and mselect reads the menu selection from the pipe.  This should rarely
-be needed and the B<-a> option of mselect is more likely to provide a
-good solution to menu options from a program or file.
+Read menu selections from stdin even if stdin is a pipe.  Used
+for testing or automation.
 
 =back
 
@@ -87,7 +61,8 @@ _mselect () {
     local dummy choice i
     local -a selected_choices valid_choices
 
-    select dummy in "$@"; do  # present numbered choices to user
+    select dummy in "$@"; do # present numbered choices to user
+
 # Parse ,-separated numbers entered into an array.
 # Variable $REPLY contains whatever the user entered.
         IFS=', ' read -ra selected_choices <<<"$REPLY"
@@ -98,6 +73,7 @@ _mselect () {
             continue 2 # ==> continue to select
         fi
 
+        unset valid_choices
         for choice in "${selected_choices[@]}"; do
 
 # hack to force easier termination
@@ -122,7 +98,7 @@ _mselect () {
         done
 
         if [[ ${is_unique##0} ]] ; then
-            IFS=$'\n'
+#            IFS=$'\n'
             unique_choices=($(printf '%s\n' "${valid_choices[@]}" | sort -un))
             if (( ${#unique_choices[@]} < ${#valid_choices[@]} )) ; then
                 echo "Choice selected more than once with unique option enabled." >&2
@@ -141,9 +117,8 @@ _mselect () {
             fi
         fi
 
-        # is_xargs is true prolly implies ! [ -t 0 ]
-        if ((is_xargs)) && ! [ -t 0 ] ; then
-            echo # no return from terminal move to next line anyway
+        if ((is_stdin_select)) ; then
+            echo "$REPLY">/dev/tty
         fi
 
         for choice in "${valid_choices[@]}"; do
@@ -153,25 +128,17 @@ _mselect () {
         done
 # All choices are valid, exit the prompt.
         break
-    done
+    done <&3
 
     return 0
 }
 
 mselect() {
-    local is_menu_sort is_unique is_xargs is_infile is_numeric_choice
-    local parent_prog_name OPTIND opt dummy old_ifs="${IFS}"
-    local -a menu_opts ps_fields
+    local is_menu_sort is_unique is_numeric_choice is_stdin_select
+    local OPTIND opt
 
-    while getopts a:nsux opt; do
+    while getopts nsut opt; do
         case $opt in
-            a)  is_infile=1
-                IFS=$'\n'
-                menu_opts=($(cat $OPTARG))
-                IFS="${old_ifs}"
-                shift $((OPTIND-1))
-                 _mselect "${menu_opts[@]}"
-                ;;
             n)  is_numeric_choice=1
                 shift $((OPTIND-1))
                 ;;
@@ -181,31 +148,25 @@ mselect() {
             u)  is_unique=1
                 shift $((OPTIND-1))
                 ;;
-            x)  is_xargs=1
+            t)  is_stdin_select=1
                 shift $((OPTIND-1))
                 ;;
         esac
     done
 
-    # STDIN not from terminal - might be cleverer check
-    if ! ((is_infile)) && ! [ -t 0 ] ; then
-        if ! (($#)) ; then
-            echo 'Reading both menu and selections from same(?) file or pipe unlikely to work' 1>&2
-            echo 'For auto generated menu options consider -a option'
-            return 2
-        elif ! ((is_xargs)) ; then
-            parent_prog_name=$(ps -s -p $PPID | (\
-                read dummy
-                read -a ps_fields
-                basename "${ps_fields[-1]}" ))
-            if [ "$parent_prog_name" = 'xargs' ] ; then
-                echo 'Running under xargs with input from file or pipe a bit tricky.' 1>&2
-                echo 'Please use -x option and read explanation in documentation of option.' 1>&2
-                return 3
-            fi 
-        fi
-    fi
+    if [ -t 0 ] || ((is_stdin_select)) ; then
+        exec 3<&0
+        _mselect "$@"
+    else
+        local -a args=("$@")
+        local old_ifs="${IFS}"
+        IFS=$'\n'
+        args+=($(cat))
+        IFS="${old_ifs}"
 
-     _mselect "$@"
+        exec 3</dev/tty
+
+        _mselect "${args[@]}"
+    fi
 }
 
