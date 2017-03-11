@@ -8,7 +8,9 @@ mselect - a text filter extension of select that allows
 multiple selections.  Depending on options, menu items
 can be selected more than once and output defaults to order
 of user selection but can be in order of menu items.  '*'
-specifies selecting all menu items unless disallowed with B<-n>.
+specifies selecting all menu items and consecutive menu
+items can be selected with dash '-' separated ranges. The B<-n>
+option disallows '*' and range selection.
 
 =head1 SYNOPSIS
 
@@ -63,7 +65,10 @@ _mselect () {
 
     select dummy in "$@"; do # present numbered choices to user
 
-# Parse ,-separated numbers entered into an array.
+        # simplify range parsing by removing spaces around dash
+        REPLY=`echo "$REPLY" | sed 's/[ \t]*-[ \t]*/-/g'`
+
+        # Parse ,-separated numbers entered into an array.
 # Variable $REPLY contains whatever the user entered.
         IFS=', ' read -ra selected_choices <<<"$REPLY"
 # Loop over all numbers entered.
@@ -77,17 +82,44 @@ _mselect () {
         for choice in "${selected_choices[@]}"; do
 
 # hack to force easier termination
-            if [ "$choice" = 'quit' ] || [ "$choice" = '0' ]
+            if [[ $choice = 'quit' || $choice = '0' ]]
             then
                 return
             fi
 
             # Validate the number entered.
             # reject non natural numbers
-            if [ -n "${choice//[0-9]}" ] || ! (( choice >= 1 && choice <= $# ))
+            if [[ -n ${choice//[0-9]} ]] || ! (( choice >= 1 && choice <= $# ))
             then 
-                if [ "$choice" = '*' ] && ! ((is_numeric_choice)) ; then
-                    valid_choices+=($(seq -s' ' 1 $#))
+                if [[ $choice = '*' ]] ; then
+                    if ! ((is_numeric_choice)) ; then
+                        valid_choices+=($(seq -s' ' 1 $#))
+                    else
+                        echo 'Invalid choice: * disallowed by -n numeric only option. Try again.'
+                        continue 2
+                    fi
+                elif [\
+                   -z `echo "$choice" | sed 's/[0-9][0-9]*-[0-9][0-9]*//'` \
+                ] ; then
+                    if ! ((is_numeric_choice)) ; then
+
+                        local range_start=${choice%-*}
+                        local range_end=${choice#*-}
+                        if ((   range_start >= 1            &&
+                                range_start <= $#           &&
+                                range_start <= range_end    &&
+                                range_end   <= $#           )) ; then
+                            valid_choices+=($(seq -s' ' "$range_start" "$range_end"))
+                        else
+                            echo "Invalid range: $choice. Try again." >&2
+                            continue 2 # ==> continue to select
+                        fi
+
+                    else
+                        echo 'Invalid choice: range disallowed by -n numeric only option. Try again.'
+                        continue 2
+                    fi
+
                 else
                     echo "Invalid choice: $choice. Try again." >&2
                     continue 2 # ==> continue to select
@@ -97,7 +129,7 @@ _mselect () {
             fi
         done
 
-        if [[ ${is_unique##0} ]] ; then
+        if ((is_unique)) ; then
 #            IFS=$'\n'
             unique_choices=($(printf '%s\n' "${valid_choices[@]}" | sort -un))
             if (( ${#unique_choices[@]} < ${#valid_choices[@]} )) ; then
@@ -106,8 +138,8 @@ _mselect () {
             fi
         fi
 
-        if [[ ${is_menu_sort##0} ]] ; then
-            if [[ ${is_unique##0} ]] ; then
+        if ((is_menu_sort)) ; then
+            if ((is_unique)) ; then
                 valid_choices=("${unique_choices[@]}")
             else
                 IFS=$'\n'

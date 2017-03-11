@@ -20,8 +20,31 @@ test_menu_to_three(
 );
 
 test_menu_to_three(
-    'refuse select * with -n option', '2 *', 'Invalid choice: *. Try again.',
+    'refuse select * with -n option', '2 *',
+    'Invalid choice: * disallowed by -n numeric only option. Try again.',
     'menu choice correctly rejected',
+    { optarg => '-n' } 
+);
+
+test_menu_to_five(
+    'select with valid range', '1,3-5', [ qw(one three four five) ],
+    'selected menu items matched range'
+);
+
+test_menu_to_five(
+    'select with invalid range', '1,3-7', 'Invalid range: 3-7. Try again.',
+    'invalid range rejected'
+);
+
+test_menu_to_five(
+    'select with invalid reverse range', '1,5-3',
+    'Invalid range: 5-3. Try again.', 'invalid reverse range rejected'
+);
+
+test_menu_to_three(
+    'refuse range with -n option', '2-3',
+    'Invalid choice: range disallowed by -n numeric only option. Try again.',
+    'range with -n option correctly rejected',
     { optarg => '-n' } 
 );
 
