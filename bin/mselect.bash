@@ -42,8 +42,8 @@ the same item can be selected more than once.
 
 =item B<-n>
 
-Disallow '*' selection of all items and require that selections
-be individually specified items by number.
+Disallow '*' selection of all items and range selection.  Require
+that selections be individually specified items by number.
 
 =item B<-t>
 
