@@ -169,6 +169,26 @@ mselect() {
     local is_menu_sort is_unique is_numeric_choice is_stdin_select
     local OPTIND opt
 
+    _usage() {
+        cat >&2 <<END_USAGE
+Usage: mselect [-nstu] menu-option1 [ menu-option2 ... ]
+
+Text filter extension of select that allows multiple selections.
+
+    $ mselect giggle gaggle bargle waggle
+    1) giggle
+    2) gaggle
+    3) bargle
+    4) waggle
+    #? 2 3
+    gaggle
+    bargle
+
+See man page for more documentation.
+END_USAGE
+        exit 1
+    }
+
     while getopts nsut opt; do
         case $opt in
             n)  is_numeric_choice=1
@@ -187,8 +207,12 @@ mselect() {
     done
 
     if [ -t 0 ] || ((is_stdin_select)) ; then
-        exec 3<&0
-        _mselect "$@"
+        if [[ $# -eq 0 ]] ; then
+            _usage
+        else
+            exec 3<&0
+            _mselect "$@"
+        fi
     else
         local -a args=("$@")
         local old_ifs="${IFS}"
@@ -196,9 +220,12 @@ mselect() {
         args+=($(cat))
         IFS="${old_ifs}"
 
-        exec 3</dev/tty
-
-        _mselect "${args[@]}"
+        if [[ ${#args[*]} -eq 0 ]] ; then
+            _usage
+        else
+            exec 3</dev/tty
+            _mselect "${args[@]}"
+        fi
     fi
 }
 
