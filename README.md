@@ -1,12 +1,11 @@
 # NAME
 
-mselect - a text filter extension of select that allows
-multiple selections.  Depending on options, menu items
-can be selected more than once and output defaults to order
-of user selection but can be in order of menu items.  '\*'
-specifies selecting all menu items and consecutive menu
-items can be selected with dash '-' separated ranges. The **-n**
-option disallows '\*' and range selection.
+mselect - a text filter extension of select that allows multiple
+selections.  Depending on options, menu items can be selected more
+than once and output defaults to order of user selection but can be in
+order of menu items.  '\*' specifies selecting all menu items and
+consecutive menu items can be selected with dash '-' separated ranges.
+The **-n** option disallows '\*' and range selection.
 
 # SYNOPSIS
 
@@ -24,22 +23,30 @@ option disallows '\*' and range selection.
 - **-s**
 
     Sort output in menu order.  By default selections are output in the
-    order specified by the item numbers provided at the prompt.  This option
-    specifies that selected items are output in the same order as items
-    in the menu.
+    order specified by the item numbers provided at the prompt.  This
+    option specifies that selected items are output in the same order as
+    items in the menu.
 
 - **-u**
 
     Require that item selections be unique.  Prints an error and presents
-    the menu again if an item is selected more than once.  By default
-    the same item can be selected more than once.
+    the menu again if an item is selected more than once.  By default the
+    same item can be selected more than once.
 
 - **-n**
 
-    Disallow '\*' selection of all items and range selection.  Require
-    that selections be individually specified items by number.
+    Disallow '\*' selection of all items and range selection.  Require that
+    selections be individually specified items by number.
+
+- **-S**
+
+    Provide a Y/N, accept or reject, default for the special case where
+    the menu has one item.  The default allows the user to accept (Y) or
+    reject(N) the one menu item just by pressing the return key.  A search
+    or other automated process may have one match as a common case but
+    multiple matches often enough to justify a menu.
 
 - **-t**
 
-    Read menu selections from stdin even if stdin is a pipe.  Used
-    for testing or automation.
+    Read menu selections from stdin even if stdin is a pipe.  Used for
+    testing or automation.

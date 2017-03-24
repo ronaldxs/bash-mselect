@@ -69,9 +69,16 @@ sub test_menu_to_n {
 
     subtest $test_description, sub {
         plan tests => 2 + (exists $opts->{exit_status} ? 2 : 0);
-        $exp->expect_prompt_reply_lines(
-            $menu_selection, $selected_lines, $selection_description
-        );
+        if (ref($selected_lines) eq 'Regexp') {
+            $exp->expect_prompt_reply_like(
+                $menu_selection, $selected_lines, $selection_description
+            );
+        }
+        else {
+            $exp->expect_prompt_reply_lines(
+                $menu_selection, $selected_lines, $selection_description
+            );
+        }
         if (exists $opts->{exit_status}) {
             my (undef, $expect_error) =
                 $exp->expect($SHELL_CMD_TO, $DEFAULT_MENU_PROMPT);

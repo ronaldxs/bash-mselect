@@ -21,7 +21,7 @@ test_menu_to_three(
 
 test_menu_to_three(
     'refuse select * with -n option', '2 *',
-    'Invalid choice: * disallowed by -n numeric only option. Try again.',
+    qr/Invalid.*\* disallowed by -n.*/,
     'menu choice correctly rejected',
     { optarg => '-n' } 
 );
@@ -43,7 +43,7 @@ test_menu_to_five(
 
 test_menu_to_three(
     'refuse range with -n option', '2-3',
-    'Invalid choice: range disallowed by -n numeric only option. Try again.',
+    qr/Invalid.* range disallowed by -n.*/,
     'range with -n option correctly rejected',
     { optarg => '-n' } 
 );
