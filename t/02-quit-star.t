@@ -53,7 +53,6 @@ foreach my $exit_command ('quit', '0') {
     subtest "say $exit_command and exit", sub {
         plan tests => 3;
 
-        my $pat_idx;
         $exp->prompt_reply($exit_command);
         my (undef, $expect_error) =
             $exp->expect($SHELL_CMD_TO, $DEFAULT_MENU_PROMPT);
