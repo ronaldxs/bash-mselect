@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 : <<'END_OF_DOCS'
 
@@ -71,7 +71,7 @@ _mselect_single_w_default () {
     local single_w_default prompt_prefix swd_reply
     local IFS=', '
 
-    if [ -z ${PS3+1} ] ; then
+    if [ -z ${PS3:+1} ] ; then
         PS3='#? '
     fi
     if [[ $single_default = 'Y' ]] ; then
@@ -90,7 +90,7 @@ _mselect_single_w_default () {
 
         read -p "$PS3" -a swd_reply <&3
 
-        if [ -z ${swd_reply+1} ] ; then
+        if [ -z ${swd_reply:+1} ] ; then
             swd_reply=$single_w_default
         fi
 
@@ -122,7 +122,7 @@ _mselect () {
     local dummy choice
     local -a selected_choices valid_choices
 
-    if [[ -n ${single_default+1} ]] && [ $# = 1 ] ; then
+    if [[ -n ${single_default:+1} && $# = 1 ]] ; then
         _mselect_single_w_default "$@"
         return
     fi
