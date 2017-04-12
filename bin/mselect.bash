@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+# mselect - implementation of shell select as text filter allowing
+# multiple selections
+# Copyright (C) Ronald Schmidt
+# GPL License should be included in source repository.
+
 : <<'END_OF_DOCS'
 
 =head1 NAME
