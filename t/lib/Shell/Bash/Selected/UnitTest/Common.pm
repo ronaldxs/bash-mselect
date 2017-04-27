@@ -64,7 +64,13 @@ sub test_menu_to_n {
             $opts
     ) = @_;
     my $exp = $opts->{exp} //
-        new_menu_to_n($n, $opts->{optarg} // ());
+        new_menu_to_n(
+            $n,
+            $opts->{optarg}     ?   (
+                ref($opts->{optarg}) eq 'ARRAY'  ?
+                    @{$opts->{optarg}} : $opts->{optarg}
+            ) : () 
+        );
     my $pat_idx;
 
     subtest $test_description, sub {
