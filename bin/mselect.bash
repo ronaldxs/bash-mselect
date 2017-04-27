@@ -139,11 +139,11 @@ _mselect () {
 
         # Parse ,-separated numbers entered into an array.
 # Variable $REPLY contains whatever the user entered.
-        IFS=', ' read -a selected_choices <<<"$REPLY"
+        IFS=', '$'\t' read -a selected_choices <<<"$REPLY"
 # Loop over all numbers entered.
 
         # todo - check of this happens
-        if ! (( ${#selected_choices[*]} )); then
+        if ! (( ${#selected_choices[@]} )); then
             echo "No selections from menu.  'quit' or '0' for no selection." >&2
             continue # ==> continue to select
         fi
@@ -169,7 +169,7 @@ _mselect () {
                         continue 2
                     fi
                 elif [\
-                   -z `echo "$choice" | sed 's/[0-9][0-9]*-[0-9][0-9]*//'` \
+                   -z "$(echo "$choice" | sed 's/[0-9][0-9]*-[0-9][0-9]*//')" \
                 ] ; then
                     if ! ((is_numeric_choice)) ; then
 
@@ -260,26 +260,22 @@ END_USAGE
     while getopts S:nsut opt; do
         case $opt in
             n)  is_numeric_choice=1
-                shift $((OPTIND-1))
                 ;;
             s)  is_menu_sort=1
-                shift $((OPTIND-1))
                 ;;
             S)  single_default=$(echo "$OPTARG" | tr '[a-z]' '[A-Z]')
                 if [[ ! $single_default = [YN] ]] ; then
                     echo 'Single default option must either be Y or N' >&2
                     exit 1
                 fi
-                shift $((OPTIND-1))
                 ;;
             u)  is_unique=1
-                shift $((OPTIND-1))
                 ;;
             t)  is_stdin_select=1
-                shift $((OPTIND-1))
                 ;;
         esac
     done
+    shift $((OPTIND-1))
 
     if [ -t 0 ] || ((is_stdin_select)) ; then
         if [[ $# -eq 0 ]] ; then
@@ -295,7 +291,7 @@ END_USAGE
         args+=($(cat))
         IFS="${old_ifs}"
 
-        if [[ ${#args[*]} -eq 0 ]] ; then
+        if [[ ${#args[@]} -eq 0 ]] ; then
             _usage
         else
             exec 3</dev/tty
