@@ -236,7 +236,7 @@ mselect() {
     local is_menu_sort is_unique is_numeric_choice is_stdin_select
     local single_default OPTIND opt
 
-    _usage() {
+    _mselect_usage() {
         cat >&2 <<END_USAGE
 Usage: mselect [-nstu] menu-option1 [ menu-option2 ... ]
 
@@ -278,7 +278,7 @@ END_USAGE
 
     if [ -t 0 ] || ((is_stdin_select)) ; then
         if [[ $# -eq 0 ]] ; then
-            _usage
+            _mselect_usage
         else
             exec 3<&0
             _mselect "$@"
@@ -291,7 +291,7 @@ END_USAGE
         IFS="${old_ifs}"
 
         if [[ ${#args[@]} -eq 0 ]] ; then
-            _usage
+            _mselect_usage
         else
             exec 3</dev/tty
             _mselect "${args[@]}"
