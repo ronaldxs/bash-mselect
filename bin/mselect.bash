@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-# mselect - implementation of shell select as text filter allowing
-# multiple selections
+# mselect - shell select but text filter allowing multiple selections
 # Copyright (C) Ronald Schmidt
 # GPL License should be included in source repository.
 
