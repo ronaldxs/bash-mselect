@@ -253,7 +253,7 @@ Text filter extension of select that allows multiple selections.
 
 See man page for more documentation.
 END_USAGE
-        exit 1
+        return 1
     }
 
     while getopts S:nsut opt; do
@@ -265,7 +265,7 @@ END_USAGE
             S)  single_default=$(echo "$OPTARG" | tr '[a-z]' '[A-Z]')
                 if [[ ! $single_default = [YN] ]] ; then
                     echo 'Single default option must either be Y or N' >&2
-                    exit 1
+                    return 1
                 fi
                 ;;
             u)  is_unique=1
